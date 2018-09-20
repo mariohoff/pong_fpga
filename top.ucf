@@ -1,0 +1,31 @@
+NET "clk" LOC = "P56"| IOSTANDARD = LVCMOS33 ;
+
+#KEY
+#board keys
+NET "KEY2" LOC = P21;
+NET "KEY1" LOC = P17;
+NET "KEY4" LOC = P16;
+NET "KEY3" LOC = P15;
+
+
+NET "vsync" LOC = "P27";
+NET "hsync" LOC = "P26";
+
+NET "vblue<0>" LOC = "P29";
+NET "vblue<1>" LOC = "P30";
+NET "vblue<2>" LOC = "P32";
+NET "vblue<3>" LOC = "P33";
+NET "vblue<4>" LOC = "P34";
+
+NET "vgreen<0>" LOC = "P35";
+NET "vgreen<1>" LOC = "P40";
+NET "vgreen<2>" LOC = "P41";
+NET "vgreen<3>" LOC = "P43";
+NET "vgreen<4>" LOC = "P44";
+NET "vgreen<5>" LOC = "P45";
+
+NET "vred<0>" LOC = "P46";
+NET "vred<1>" LOC = "P47";
+NET "vred<2>" LOC = "P48";
+NET "vred<3>" LOC = "P50";
+NET "vred<4>" LOC = "P51";
