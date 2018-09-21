@@ -48,7 +48,7 @@ begin
 	begin
 		if clk'event and clk = '1' then
 			s_wrapping <= s_wrapping + 1;
-			if s_wrapping >= x"1388" then
+			if s_wrapping >= x"1300" then
 				s_enable <= '1';
 				s_wrapping <= (others => '0');
 			end if;

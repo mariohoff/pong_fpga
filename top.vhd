@@ -40,9 +40,9 @@ entity top is
 			  key3 : IN STD_LOGIC;
            vsync : out  STD_LOGIC;
 			  hsync : out STD_LOGIC;
-			  vblue : out STD_LOGIC_VECTOR(4 downto 0);
-			  vgreen :out STD_LOGIC_VECTOR(5 downto 0);
-			  vred : out STD_LOGIC_VECTOR(4 downto 0));
+			  vblue : out STD_LOGIC;
+			  vgreen :out STD_LOGIC;
+			  vred : out STD_LOGIC);
 end top;
 
 architecture Behavioral of top is
@@ -59,9 +59,9 @@ architecture Behavioral of top is
 				  vypos : out integer;
 				  vsync : out  STD_LOGIC;
 				  hsync : out  STD_LOGIC;
-				  vblue : out  STD_LOGIC_VECTOR (4 downto 0);
-				  vgreen : out  STD_LOGIC_VECTOR (5 downto 0);
-				  vred : out  STD_LOGIC_VECTOR (4 downto 0));
+				  vblue : out  STD_LOGIC;
+				  vgreen : out  STD_LOGIC;
+				  vred : out  STD_LOGIC);
 	end component;
 	
 	component debouncer
@@ -81,9 +81,9 @@ architecture Behavioral of top is
 	signal s_clk40 : std_logic;
 	signal s_vsync : std_logic;
 	signal s_hsync : std_logic;
-	signal s_blue : std_logic_vector(4 downto 0);
-	signal s_green : std_logic_vector(5 downto 0);
-	signal s_red : std_logic_vector(4 downto 0);
+	signal s_blue : std_logic;
+	signal s_green : std_logic;
+	signal s_red : std_logic;
 	signal s_count : std_logic_vector(23 downto 0) := (others => '0');
 	signal s_color : std_logic_vector(2 downto 0);
 	signal s_xpos : integer range 0 to 800;
@@ -110,25 +110,29 @@ begin
 									vblue => s_blue,
 									vgreen => s_green,
 									vred => s_red);
-
-	btn1 : debouncer port map (clk => s_clk40,
-										 btn_in =>  not key1,
-										 btn_out => s_key1);
+	-- player 1 keys
 	btn2 : debouncer port map (clk => s_clk40,
-										 btn_in =>  not key2,
+										 btn_in =>  key2,
 										 btn_out => s_key2);
 	btn3 : debouncer port map (clk => s_clk40,
-										 btn_in =>  not key3,
+										 btn_in =>  key3,
 										 btn_out => s_key3);
+
+	-- player 2 keys
+	btn1 : debouncer port map (clk => s_clk40,
+										 btn_in =>  key1,
+										 btn_out => s_key1);
 	btn4 : debouncer port map (clk => s_clk40,
-										 btn_in =>  not key4,
-										 btn_out => s_key4);
+									 btn_in =>  key4,
+									 btn_out => s_key4);
+
+
 
 	process(s_clk40)
 	begin
 		if s_clk40'event and s_clk40 = '1' then
 			s_count <= s_count + 1;
-			s_color <= "111"; -- standard black
+			s_color <= "000"; -- standard black
 			ball.y <= 299;
 			
 			if p1.y < 20 or p1.y > 679 then
@@ -139,27 +143,27 @@ begin
 			end if;
 			
 			if s_xpos <= 20 or s_xpos >= 779 or (s_xpos >= 379 and s_xpos <= 399) then
-				s_color <= "000";
+				s_color <= "111";
 			end if;
 			if s_ypos <= 20 or s_ypos >= 579 then
-				s_color <= "000";
+				s_color <= "111";
 			end if;
 			
 			-- show p1 score
 			if s_xpos >= 340 and s_xpos <= 369 and s_ypos >= 30 and s_ypos <= 69 then
 				if c_NUMBERS(p1.score)((s_ypos-30)/5)((s_xpos-340)/5) = '1' then
-					s_color <= "011"; -- yellow
+					s_color <= "011"; -- cyan
 				end if;
 			end if;
 			-- show p2 score
 			if s_xpos >= 410 and s_xpos <= 439 and s_ypos >= 30 and s_ypos <= 69 then
 				if c_NUMBERS(p2.score)((s_ypos-30)/5)((s_xpos-410)/5) = '1' then
-					s_color <= "110"; -- pink
+					s_color <= "101"; -- pink
 				end if;
 			end if;
 			
 			if s_xpos >= p1.x and s_xpos <= (p1.x+p1.width)  and s_ypos >= p1.y and s_ypos <= (p1.y+p1.height) then
-					s_color <= "101"; -- red
+					s_color <= "100"; -- red
 			end if;
 			if s_xpos >= p2.x and s_xpos <= (p2.x+p2.width) and s_ypos >= p2.y and s_ypos <= (p2.y+p2.height) then
 					s_color <= "001"; -- blue
@@ -170,7 +174,7 @@ begin
 				end if;
 			end if;
 			
-			if s_count >= x"3725A" then
+			if s_count >= x"1725A" then
 				s_count <= (others => '0');
 				-- move ball
 				if ball.x <= 10 then

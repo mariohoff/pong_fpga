@@ -37,9 +37,9 @@ entity vga is
 			  vypos : out integer;
            vsync : out  STD_LOGIC;
            hsync : out  STD_LOGIC;
-           vblue : out  STD_LOGIC_VECTOR (4 downto 0);
-           vgreen : out  STD_LOGIC_VECTOR (5 downto 0);
-           vred : out  STD_LOGIC_VECTOR (4 downto 0));
+           vblue : out  STD_LOGIC;
+           vgreen : out  STD_LOGIC;
+           vred : out  STD_LOGIC);
 end vga;
 
 architecture Behavioral of vga is
@@ -50,10 +50,10 @@ architecture Behavioral of vga is
 	signal s_hsync : std_logic;
 	signal s_hcount : std_logic_vector(10 downto 0);
 	
-	signal s_blue : std_logic_vector(4 downto 0);
-	signal s_green : std_logic_vector(5 downto 0);
-	signal s_red : std_logic_vector(4 downto 0);
-	signal s_color : std_logic_vector(15 downto 0);
+	signal s_blue : std_logic;
+	signal s_green : std_logic;
+	signal s_red : std_logic;
+	signal s_color : std_logic_vector(2 downto 0);
 	
 	signal s_enable : std_logic;
 	signal x_pos : integer range 0 to 800;
@@ -83,24 +83,14 @@ begin
 			end if;
 		
 			if s_enable = '1' and y_pos < x"258" and x_pos < x"320" then
-				case color_sel is
-					when "000" => s_color <= x"ffff"; --white
-					when "001" => s_color <= x"041f"; -- blue
-					when "010" => s_color <= x"07e0"; -- green
-					when "011" => s_color <= x"ffe0"; -- yellow
-					when "100" => s_color <= x"fc00"; -- orange
-					when "101" => s_color <= x"f800"; -- red
-					when "110" => s_color <= x"fc1f"; -- pink
-					when "111" => s_color <= x"0000"; --black
-					when others => s_color <= x"0000";
-				end case;
+				s_color <= color_sel;
 			else
-				s_color <= x"0000";
+				s_color <= "000";
 			end if;
-				
-			s_red <= s_color(15 downto 11);
-			s_green <= s_color(10 downto 5);
-			s_blue <= s_color(4 downto 0);			
+			
+			s_red <= s_color(2);
+			s_green <= s_color(1);
+			s_blue <= s_color(0);			
 		end if;
 	end process;
 	
