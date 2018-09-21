@@ -70,6 +70,8 @@ architecture Behavioral of top is
 				  btn_out : out  STD_LOGIC);
 	end component;
 
+
+	-- other signals
 	signal s_key1 : std_logic;
 	signal s_key2 : std_logic;
 	signal s_key3 : std_logic;
@@ -127,8 +129,6 @@ begin
 		if s_clk40'event and s_clk40 = '1' then
 			s_count <= s_count + 1;
 			s_color <= "111"; -- standard black
-			p1.x <= 30;
-			p2.x <= 750;
 			ball.y <= 299;
 			
 			if p1.y < 20 or p1.y > 679 then
@@ -145,6 +145,19 @@ begin
 				s_color <= "000";
 			end if;
 			
+			-- show p1 score
+			if s_xpos >= 340 and s_xpos <= 369 and s_ypos >= 30 and s_ypos <= 69 then
+				if c_NUMBERS(p1.score)((s_ypos-30)/5)((s_xpos-340)/5) = '1' then
+					s_color <= "011"; -- yellow
+				end if;
+			end if;
+			-- show p2 score
+			if s_xpos >= 410 and s_xpos <= 439 and s_ypos >= 30 and s_ypos <= 69 then
+				if c_NUMBERS(p2.score)((s_ypos-30)/5)((s_xpos-410)/5) = '1' then
+					s_color <= "110"; -- pink
+				end if;
+			end if;
+			
 			if s_xpos >= p1.x and s_xpos <= (p1.x+p1.width)  and s_ypos >= p1.y and s_ypos <= (p1.y+p1.height) then
 					s_color <= "101"; -- red
 			end if;
@@ -152,14 +165,26 @@ begin
 					s_color <= "001"; -- blue
 			end if;
 			if s_xpos >= ball.x and s_xpos <= (ball.x+ball.radius) and s_ypos >= ball.y and s_ypos <= (ball.y+ball.radius) then
-				s_color <= "010"; -- green
+				if c_BALL(ball.y-s_ypos)(ball.x-s_xpos) = '1' then
+					s_color <= "010"; -- green
+				end if;
 			end if;
 			
-			if s_count >= x"2625A" then
+			if s_count >= x"3725A" then
 				s_count <= (others => '0');
 				-- move ball
-				if ball.x <= 10 or ball.x >= 789 then
+				if ball.x <= 10 then
 					ball.x <= 399;
+					p2.score <= p2.score + 1;
+					if p2.score = 9 then
+						p2.score <= 0;
+					end if;
+				elsif ball.x >= 789 then
+					ball.x <= 399;
+					p1.score <= p1.score + 1;
+					if p1.score = 9 then
+						p1.score <= 0;
+					end if;
 				else
 					if ball_dir = '0' then
 						ball.x <= ball.x - 1;
@@ -167,25 +192,25 @@ begin
 						ball.x <= ball.x + 1;
 					end if;
 				end if;			
-				if ball.x = p1.x and (ball.y >= p1.y and ball.y <= (p1.y+p1.height)) then
+				if ball.x = (p1.x+p1.width-1) and (ball.y >= (p1.y-ball.radius) and ball.y <= (p1.y+p1.height)) then
 					ball_dir <= '1';
 				end if;
-				if ball.x = p2.x and (ball.y >= p2.y and ball.y <= (p2.y+p2.height)) then
+				if (ball.x+ball.radius+1) = p2.x and (ball.y >= (p2.y-ball.radius) and ball.y <= (p2.y+p2.height)) then
 					ball_dir <= '0';
 				end if;
 				
 				-- move players if a key is pressed
 				if  s_keys /= "0000" then
-					if s_key3 = '1' and p1.y > 20 then
+					if s_key2 = '1' and p1.y > 20 then
 						p1.y <= p1.y - 1;
 					end if;
-					if s_key2 = '1' and p1.y < 479 then
+					if s_key3 = '1' and p1.y < 479 then
 						p1.y <= p1.y + 1;
 					end if;
-					if s_key1 = '1' and p2.y > 20 then
+					if s_key4 = '1' and p2.y > 20 then
 						p2.y <= p2.y - 1;
 					end if;
-					if s_key4 = '1' and s_p2pos < 479 then
+					if s_key1 = '1' and s_p2pos < 479 then
 						p2.y <= p2.y + 1;
 					end if;
 				end if;			
@@ -194,7 +219,8 @@ begin
 		end if;
 	end process;
 	
-	
+	p1.x <= 30;
+	p2.x <= 750;
 	s_keys <= s_key4 & s_key3 & s_key2 & s_key1;
 	vsync <= s_vsync;
 	hsync <= s_hsync;
