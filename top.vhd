@@ -45,7 +45,7 @@ entity top is
 			  vred : out STD_LOGIC);
 end top;
 
-architecture Behavioral of top is
+architecture Behavioral of top is	
 	component clk_pll
 		port ( CLK_IN1 : in std_logic;
 				CLK_OUT1 : out std_logic;
@@ -69,8 +69,7 @@ architecture Behavioral of top is
 				  btn_in : in  STD_LOGIC;
 				  btn_out : out  STD_LOGIC);
 	end component;
-
-
+	
 	-- other signals
 	signal s_key1 : std_logic;
 	signal s_key2 : std_logic;
@@ -86,8 +85,14 @@ architecture Behavioral of top is
 	signal s_red : std_logic;
 	signal s_count : std_logic_vector(23 downto 0) := (others => '0');
 	signal s_color : std_logic_vector(2 downto 0);
+	
 	signal s_xpos : integer range 0 to 800;
 	signal s_ypos : integer range 0 to 600;
+	signal s_speedx : integer range -10 to 10 := 1;
+	signal s_speedy : integer range -10 to 10 := 1;
+	signal s_speedcountx : integer range 0 to 100;
+	signal s_speedcounty : integer range 0 to 100;
+	
 
 	signal s_p1pos : integer range 0 to 600;
 	signal s_p2pos : integer range 0 to 600;
@@ -95,6 +100,8 @@ architecture Behavioral of top is
 	signal p2 : player_t := C_PLAYER_INIT;
 	signal ball : ball_t := c_BALL_INIT;
 	signal ball_dir : bit;
+	signal y_dir : bit := '0';
+	signal s_start : bit := '0';
 	
 begin
 	clk40_pll : clk_pll port map ( clk_in1 => clk,
@@ -129,12 +136,15 @@ begin
 
 
 	process(s_clk40)
+		variable diff : integer range -100 to 100;
+		variable speedx : integer range -5 to 5;
+		variable speedy : integer range -5 to 5;
+		variable dir : bit;
 	begin
 		if s_clk40'event and s_clk40 = '1' then
 			s_count <= s_count + 1;
 			s_color <= "000"; -- standard black
-			ball.y <= 299;
-			
+			-- ball.y <= 299;
 			if p1.y < 20 or p1.y > 679 then
 				p1.y <= 20;
 			end if;			
@@ -142,16 +152,16 @@ begin
 				p2.y <= 20;
 			end if;
 			
-			if s_xpos <= 20 or s_xpos >= 779 or (s_xpos >= 379 and s_xpos <= 399) then
+			if s_xpos < 10 or s_xpos >= 789 or (s_xpos > 397 and s_xpos < 403) then
 				s_color <= "111";
 			end if;
-			if s_ypos <= 20 or s_ypos >= 579 then
+			if s_ypos < 10 or s_ypos >= 589 then
 				s_color <= "111";
 			end if;
 			
 			-- show p1 score
-			if s_xpos >= 340 and s_xpos <= 369 and s_ypos >= 30 and s_ypos <= 69 then
-				if c_NUMBERS(p1.score)((s_ypos-30)/5)((s_xpos-340)/5) = '1' then
+			if s_xpos >= 360 and s_xpos <= 389 and s_ypos >= 30 and s_ypos <= 69 then
+				if c_NUMBERS(p1.score)((s_ypos-30)/5)((s_xpos-360)/5) = '1' then
 					s_color <= "011"; -- cyan
 				end if;
 			end if;
@@ -168,53 +178,94 @@ begin
 			if s_xpos >= p2.x and s_xpos <= (p2.x+p2.width) and s_ypos >= p2.y and s_ypos <= (p2.y+p2.height) then
 					s_color <= "001"; -- blue
 			end if;
-			if s_xpos >= ball.x and s_xpos <= (ball.x+ball.radius) and s_ypos >= ball.y and s_ypos <= (ball.y+ball.radius) then
+			if s_xpos >= ball.x and s_xpos <= (ball.x+ball.width) and s_ypos >= ball.y and s_ypos <= (ball.y+ball.width) then
 				if c_BALL(ball.y-s_ypos)(ball.x-s_xpos) = '1' then
 					s_color <= "010"; -- green
 				end if;
 			end if;
 			
-			if s_count >= x"1725A" then
+			if s_count >= x"1025A" then
 				s_count <= (others => '0');
 				-- move ball
-				if ball.x <= 10 then
-					ball.x <= 399;
-					p2.score <= p2.score + 1;
-					if p2.score = 9 then
-						p2.score <= 0;
-					end if;
-				elsif ball.x >= 789 then
-					ball.x <= 399;
-					p1.score <= p1.score + 1;
-					if p1.score = 9 then
-						p1.score <= 0;
-					end if;
-				else
-					if ball_dir = '0' then
-						ball.x <= ball.x - 1;
+				if s_start = '1' then
+					if ball.x <= 10 then
+						p2.score <= p2.score + 1;
+						p1.y <= 250;
+						p2.y <= 250;
+						s_start <= '0';
+						ball_dir <= not ball_dir;
+						ball.x <= 60;
+						ball.y <= 299;
+						if p2.score = 9 then
+							p2.score <= 0;
+						end if;
+					elsif ball.x >= 789 then
+						p1.score <= p1.score + 1;
+						p1.y <= 250;
+						p2.y <= 250;
+						s_start <= '0';
+						ball_dir <= not ball_dir;
+						ball.x <= 740;
+						ball.y <= 299;
+						if p1.score = 9 then
+							p1.score <= 0;
+						end if;
 					else
-						ball.x <= ball.x + 1;
+						s_speedcountx <= s_speedcountx + 1;
+						s_speedcounty <= s_speedcounty + 1;
+						if s_speedcountx >= s_speedx then
+							if ball_dir = '0' then
+								ball.x <= ball.x - 1;
+							else
+								ball.x <= ball.x + 1;
+							end if;
+							s_speedcountx <= 0;
+						end if;
+						if s_speedcounty >= s_speedy*3 then
+							if y_dir = '1' then
+								ball.y <= ball.y - s_speedy;
+							else
+								ball.y <= ball.y + s_speedy;
+							end if;
+							s_speedcounty <= 0;
+						end if;
+						if ball.y <= 10 then
+							y_dir <= '0';
+						elsif ball.y >= 574 then
+							y_dir <= '1';
+						end if;		
+					end if;	
+					
+					if (ball.x = (p1.x+p1.width-1) and (ball.y >= (p1.y-ball.width) and ball.y <= (p1.y+p1.height))) then
+						ball_dir <= '1';
+						diff := ball.y-p1.y;
+						SPEED_CALC(diff, speedx, speedy, dir);
+						s_speedx <= speedx;
+						s_speedy <= speedy;
+						y_dir <= dir;
 					end if;
-				end if;			
-				if ball.x = (p1.x+p1.width-1) and (ball.y >= (p1.y-ball.radius) and ball.y <= (p1.y+p1.height)) then
-					ball_dir <= '1';
+					if ((ball.x+ball.width+1) = p2.x and (ball.y >= (p2.y-ball.width) and ball.y <= (p2.y+p2.height))) then
+						ball_dir <= '0';
+						diff := ball.y-p2.y;
+						SPEED_CALC(diff, speedx, speedy, dir);
+						s_speedx <= speedx;
+						s_speedy <= speedy;
+						y_dir <= dir;
+						end if;
 				end if;
-				if (ball.x+ball.radius+1) = p2.x and (ball.y >= (p2.y-ball.radius) and ball.y <= (p2.y+p2.height)) then
-					ball_dir <= '0';
-				end if;
-				
 				-- move players if a key is pressed
 				if  s_keys /= "0000" then
-					if s_key2 = '1' and p1.y > 20 then
+					s_start <= '1';
+					if s_key2 = '1' and p1.y > 10 then
 						p1.y <= p1.y - 1;
 					end if;
-					if s_key3 = '1' and p1.y < 479 then
+					if s_key3 = '1' and p1.y < 559 then
 						p1.y <= p1.y + 1;
 					end if;
-					if s_key4 = '1' and p2.y > 20 then
+					if s_key4 = '1' and p2.y > 10 then
 						p2.y <= p2.y - 1;
 					end if;
-					if s_key1 = '1' and s_p2pos < 479 then
+					if s_key1 = '1' and p2.y < 559 then
 						p2.y <= p2.y + 1;
 					end if;
 				end if;			
@@ -224,7 +275,7 @@ begin
 	end process;
 	
 	p1.x <= 30;
-	p2.x <= 750;
+	p2.x <= 770;
 	s_keys <= s_key4 & s_key3 & s_key2 & s_key1;
 	vsync <= s_vsync;
 	hsync <= s_hsync;

@@ -9,6 +9,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
+use IEEE.STD_LOGIC_UNSIGNED.all;
 
 package records is
 
@@ -40,17 +41,17 @@ package records is
 	type ball_t is record
 		x : integer range 0 to 800;
 		y : integer range 0 to 600;
-		radius : integer range 0 to 100;
+		width : integer range 0 to 100;
 	end record ball_t;
 	
 	constant c_PLAYER_INIT : player_t := (x => 30,
-														y => 30,
+														y => 250,
 														height => 100,
-														width => 20,
+														width => 10,
 														score => 0);
 	constant c_BALL_INIT : ball_t := (x => 399,
 												y => 299,
-												radius => 15);
+												width => 15);
 	
 	type number_t is array(0 to 7) of std_logic_vector(0 to 5);
 	type numbers_array is array(0 to 9) of number_t;
@@ -81,6 +82,13 @@ package records is
 														"000111111111000",
 														"000011111110000",
 														"000000000000000");
+														
+	procedure SPEED_CALC
+		(diff_in : in integer range -100 to 100;
+		speedx : out integer range -5 to 5;
+		speedy : out integer range -5 to 5;
+		y_dir : out bit);
+	
 end records;
 
 package body records is
@@ -110,5 +118,51 @@ package body records is
 --  begin
 --    
 --  end <procedure_name>;
-
+	procedure SPEED_CALC
+		(diff_in : in integer range -100 to 100;
+		speedx : out integer range -5 to 5;
+		speedy : out integer range -5 to 5;
+		y_dir : out bit) is
+	begin
+		case diff_in is
+		when 0 to 9 => 
+			speedx := 5;
+			speedy := 5;
+			y_dir := '1';
+		when 10 to 19 =>
+			speedx := 4;
+			speedy := 4;
+			y_dir := '1';
+		when 20 to 29 =>
+			speedx := 3;
+			speedy := 3;
+			y_dir := '1';
+		when 30 to 39 =>
+			speedx := 2;
+			speedy := 2;
+			y_dir := '1';
+		when 40 to 59 =>
+			speedx := 1;
+			speedy := 0;
+		when 60 to 69 =>
+			speedx := 2;
+			speedy := 2;
+			y_dir := '0';
+		when 70 to 79 =>
+			speedx := 3;
+			speedy := 3;
+			y_dir := '0';
+		when 80 to 89 =>
+			speedx := 4;
+			speedy := 4;
+			y_dir := '0';
+		when 90 to 99 =>
+			speedx := 5;
+			speedy := 5;
+			y_dir := '0';
+		when others =>
+			speedx := 2;
+			speedy := 2;
+		end case;	
+	end SPEED_CALC;
 end records;
